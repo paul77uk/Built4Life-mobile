@@ -49,5 +49,6 @@ class PrepopulateRoomCallback(private val context: Context) : RoomDatabase.Callb
                 exception.localizedMessage ?: "failed to pre-populate programs into database"
             )
         }
+
     }
 }

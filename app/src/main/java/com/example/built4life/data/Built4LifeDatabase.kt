@@ -10,7 +10,9 @@ import com.example.built4life.data.entities.Program
 
 @Database(
     entities = [Program::class], version = 2,
-    autoMigrations = [AutoMigration(from = 1, to = 2)]
+    autoMigrations = [AutoMigration(
+        from = 1, to = 2,
+    )]
 )
 abstract class Built4LifeDatabase : RoomDatabase() {
     abstract fun programDao(): ProgramDao
@@ -26,6 +28,7 @@ abstract class Built4LifeDatabase : RoomDatabase() {
                 Room.databaseBuilder(
                     context, Built4LifeDatabase::class.java, DATABASE_NAME
                 ).addCallback(PrepopulateRoomCallback(context))
+                    .addMigrations(MIGRATION_1_2)
                     .build().also { Instance = it }
             }
         }
