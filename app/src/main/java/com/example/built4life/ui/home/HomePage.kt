@@ -28,19 +28,25 @@ import com.example.built4life.customcomposables.AppBar
 
 @Composable
 fun HomePage(
-    modifier: Modifier = Modifier, viewModel: HomeViewModel = hiltViewModel()
+    navigateToAddProgram: () -> Unit,
+    modifier: Modifier = Modifier,
+    viewModel: HomeViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.homeUiState.collectAsState()
-    Scaffold(topBar = { AppBar(stringResource(R.string.app_name)) },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = {},
-                containerColor = Color(0xFFFE9900),
-            ) {
-                Icon(Icons.Filled.Add, "Add Program", tint = Color.White)
+    Scaffold(topBar = {
+        AppBar(
+            modifier = modifier,
+            stringResource(R.string.app_name)
+        )
+    }, floatingActionButton = {
+        FloatingActionButton(
+            onClick = navigateToAddProgram,
+            containerColor = Color(0xFFFE9900),
+        ) {
+            Icon(Icons.Filled.Add, "Add Program", tint = Color.White)
 
-            }
-        }) { innerPadding ->
+        }
+    }) { innerPadding ->
         LazyColumn(
             modifier = Modifier
                 .padding(innerPadding)
