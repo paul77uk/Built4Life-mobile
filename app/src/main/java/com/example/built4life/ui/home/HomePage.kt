@@ -1,6 +1,7 @@
 package com.example.built4life.ui.home
 
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -29,14 +30,14 @@ import com.example.built4life.customcomposables.AppBar
 @Composable
 fun HomePage(
     navigateToAddProgram: () -> Unit,
+    navigateToDay: (Int, String) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.homeUiState.collectAsState()
     Scaffold(topBar = {
         AppBar(
-            modifier = modifier,
-            stringResource(R.string.app_name)
+            modifier = modifier, stringResource(R.string.app_name)
         )
     }, floatingActionButton = {
         FloatingActionButton(
@@ -57,11 +58,16 @@ fun HomePage(
             items(uiState.programs) { program ->
                 ListItem(
                     modifier = Modifier.border(0.5.dp, Color.LightGray), headlineContent = {
-                        Text(
-                            program.title,
+                        Text(program.title,
                             textAlign = TextAlign.Center,
-                            modifier = Modifier.fillMaxWidth()
-                        )
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    navigateToDay(
+                                        program.programId,
+                                        program.title
+                                    )
+                                })
                     }, shadowElevation = 3.dp
                 )
             }

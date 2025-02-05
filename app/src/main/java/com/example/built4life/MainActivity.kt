@@ -10,8 +10,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.built4life.destinations.AddProgramRoute
+import com.example.built4life.destinations.DayRoute
 import com.example.built4life.destinations.HomeRoute
 import com.example.built4life.ui.addprogram.AddProgramPage
+import com.example.built4life.ui.day.DayPage
 import com.example.built4life.ui.home.HomePage
 import com.example.built4life.ui.theme.Built4LifeTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -38,12 +40,24 @@ fun Built4LifeApp(modifier: Modifier = Modifier) {
             composable<HomeRoute> {
                 HomePage(
                     navigateToAddProgram = { navController.navigate(AddProgramRoute) },
+                    navigateToDay = { programId, title ->
+                        navController.navigate(
+                            route = DayRoute(programId, title)
+                        )
+                    },
                     modifier = modifier
                 )
             }
 
             composable<AddProgramRoute> {
                 AddProgramPage(
+                    navigateUp = { navController.navigateUp() },
+                    modifier = modifier
+                )
+            }
+
+            composable<DayRoute> {
+                DayPage(
                     navigateUp = { navController.navigateUp() },
                     modifier = modifier
                 )

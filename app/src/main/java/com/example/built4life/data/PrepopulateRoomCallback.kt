@@ -35,8 +35,7 @@ class PrepopulateRoomCallback(private val context: Context) : RoomDatabase.Callb
                     val programObj = list.getJSONObject(index)
                     programDao.insertProgram(
                         Program(
-                            programObj.getInt("id"),
-                            programObj.getString("title")
+                            title = programObj.getString("title")
                         )
                     )
 

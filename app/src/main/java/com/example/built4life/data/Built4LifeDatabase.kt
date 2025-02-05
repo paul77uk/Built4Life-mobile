@@ -1,21 +1,28 @@
 package com.example.built4life.data
 
 import android.content.Context
-import androidx.room.AutoMigration
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import com.example.built4life.data.daos.DayDao
+import com.example.built4life.data.daos.ExerciseDao
 import com.example.built4life.data.daos.ProgramDao
+import com.example.built4life.data.entities.Day
+import com.example.built4life.data.entities.DayExerciseCrossRef
+import com.example.built4life.data.entities.Exercise
 import com.example.built4life.data.entities.Program
 
 @Database(
-    entities = [Program::class], version = 2,
-    autoMigrations = [AutoMigration(
-        from = 1, to = 2,
-    )]
+    entities = [Program::class, Day::class, Exercise::class, DayExerciseCrossRef::class],
+    version = 1,
+//    autoMigrations = [AutoMigration(
+//        from = 3, to = 4,
+//    )]
 )
 abstract class Built4LifeDatabase : RoomDatabase() {
     abstract fun programDao(): ProgramDao
+    abstract fun dayDao(): DayDao
+    abstract fun exerciseDao(): ExerciseDao
 
     companion object {
         private const val DATABASE_NAME = "built4life_database"
@@ -27,9 +34,7 @@ abstract class Built4LifeDatabase : RoomDatabase() {
             return Instance ?: synchronized(this) {
                 Room.databaseBuilder(
                     context, Built4LifeDatabase::class.java, DATABASE_NAME
-                ).addCallback(PrepopulateRoomCallback(context))
-                    .addMigrations(MIGRATION_1_2)
-                    .build().also { Instance = it }
+                ).createFromAsset("database/built4life_database.db").build().also { Instance = it }
             }
         }
     }

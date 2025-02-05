@@ -2,6 +2,8 @@ package com.example.built4life.hiltmodules
 
 import android.content.Context
 import com.example.built4life.data.Built4LifeDatabase
+import com.example.built4life.data.daos.DayDao
+import com.example.built4life.data.daos.ExerciseDao
 import com.example.built4life.data.daos.ProgramDao
 import dagger.Module
 import dagger.Provides
@@ -16,4 +18,13 @@ object DatabaseModule {
     @Provides
     fun provideProgramDao(@ApplicationContext context: Context): ProgramDao =
         Built4LifeDatabase.getDatabase(context).programDao()
+
+    @Provides
+    fun provideDayDao(@ApplicationContext context: Context): DayDao =
+        Built4LifeDatabase.getDatabase(context).dayDao()
+
+    @Provides
+    fun provideExerciseDao(@ApplicationContext context: Context): ExerciseDao =
+        Built4LifeDatabase.getDatabase(context).exerciseDao()
+
 }
