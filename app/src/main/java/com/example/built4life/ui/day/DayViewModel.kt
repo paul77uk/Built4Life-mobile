@@ -22,6 +22,7 @@ class DayViewModel @Inject constructor(
     val dayRoute: DayRoute = savedStateHandle.toRoute<DayRoute>()
     val programWithDays = programRepository.getProgramsWithDays(dayRoute.programId)
     var dayWithExercises = MutableStateFlow<List<DayWithExercises>>(emptyList())
+//    var chosenDay = MutableLiveData(0)
 
     init {
         viewModelScope.launch {
@@ -35,6 +36,12 @@ class DayViewModel @Inject constructor(
                 }
 
             }
+        }
+    }
+
+    suspend fun getExercises(dayId: Int) {
+        dayRepository.getDaysWithExercises(dayId).collect {
+            dayWithExercises.value = it
         }
     }
 
