@@ -7,6 +7,7 @@ import androidx.room.Transaction
 import com.example.built4life.data.entities.Day
 import com.example.built4life.data.entities.DayExerciseCrossRef
 import com.example.built4life.data.relations.DayWithExercises
+import com.example.built4life.data.relations.DayWithExercisesAndSets
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -23,5 +24,9 @@ interface DayDao {
 
     @Insert
     suspend fun insertDayExerciseCrossRef(dayExerciseCrossRef: DayExerciseCrossRef)
+
+    @Transaction
+    @Query("SELECT * FROM day WHERE program_id = :programId")
+    fun getDaysWithExercisesAndSets(programId: Int): Flow<List<DayWithExercisesAndSets>>
 
 }
