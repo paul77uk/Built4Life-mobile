@@ -55,10 +55,10 @@ class DayViewModel @Inject constructor(
         }
     }
 
-    fun getSets(exerciseId: Int) {
+    fun getSets(dayId: Int) {
         viewModelScope.launch {
-            setRepository.getExercisesWithSets(exerciseId).collect {
-                exercisesWithSets.value = it
+            dayRepository.getDaysWithExercisesAndSets(dayId).collect {
+                dayWithExercisesAndSets.value = it
             }
         }
     }

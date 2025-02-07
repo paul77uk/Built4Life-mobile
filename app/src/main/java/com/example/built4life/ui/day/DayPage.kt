@@ -56,7 +56,7 @@ fun DayPage(
 //                        enabled = index != chosenDay,
                         onClick = {
                             chosenDay = index
-                            viewModel.getExercises(day.dayId)
+                            viewModel.getSets(day.dayId)
                         },
                         label = {
                             Text(text = day.title)
