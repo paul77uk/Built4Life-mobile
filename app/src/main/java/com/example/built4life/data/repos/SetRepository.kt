@@ -10,6 +10,7 @@ interface SetRepository {
     fun getAllSets(): Flow<List<Set>>
     suspend fun insertSet(set: Set)
     fun getExercisesWithSets(exerciseId: Int): Flow<List<ExerciseWithSets>>
+    suspend fun updateSet(set: Set)
 }
 
 class SetRepositoryImpl @Inject constructor(private val setDao: SetDao) : SetRepository {
@@ -17,5 +18,7 @@ class SetRepositoryImpl @Inject constructor(private val setDao: SetDao) : SetRep
     override suspend fun insertSet(set: Set) = setDao.insertSet(set)
     override fun getExercisesWithSets(exerciseId: Int): Flow<List<ExerciseWithSets>> =
         setDao.getExercisesWithSets(exerciseId)
-    
+
+    override suspend fun updateSet(set: Set) = setDao.updateSet(set)
+
 }

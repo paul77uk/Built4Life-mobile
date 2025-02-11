@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
+import com.example.built4life.data.entities.Set
 import com.example.built4life.data.relations.DayWithExercises
 import com.example.built4life.data.relations.DayWithExercisesAndSets
 import com.example.built4life.data.relations.ExerciseWithSets
@@ -62,6 +63,8 @@ class DayViewModel @Inject constructor(
             }
         }
     }
+
+    suspend fun updateSet(set: Set) = setRepository.updateSet(set)
 
 
 //    private val _dayUiState = MutableStateFlow(DayUiState())
