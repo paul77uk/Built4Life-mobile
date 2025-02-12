@@ -19,5 +19,5 @@ data class DayWithExercisesAndSets(
             entityColumn = "exercise_id"
         )
     )
-    val exercises: List<ExerciseWithSets>
+    val exercises: List<ExerciseWithSets>,
 )

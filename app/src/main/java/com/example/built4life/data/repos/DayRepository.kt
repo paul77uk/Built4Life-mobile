@@ -19,6 +19,8 @@ interface DayRepository {
     suspend fun insertDayExerciseCrossRef(dayExerciseCrossRef: DayExerciseCrossRef)
 
     fun getDaysWithExercisesAndSets(programId: Int): Flow<List<DayWithExercisesAndSets>>
+
+    fun getDayWithExercisesAndSets(dayId: Int): Flow<List<DayWithExercisesAndSets>>
 }
 
 class DayRepositoryImpl @Inject constructor(private val dayDao: DayDao) :
@@ -36,5 +38,9 @@ class DayRepositoryImpl @Inject constructor(private val dayDao: DayDao) :
 
     override fun getDaysWithExercisesAndSets(programId: Int): Flow<List<DayWithExercisesAndSets>> =
         dayDao.getDaysWithExercisesAndSets(programId)
+
+    override fun getDayWithExercisesAndSets(dayId: Int): Flow<List<DayWithExercisesAndSets>> =
+        dayDao.getDayWithExercisesAndSets(dayId)
+
 
 }

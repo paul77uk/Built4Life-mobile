@@ -1,5 +1,7 @@
 package com.example.built4life.ui.day
 
+import android.view.Gravity
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -10,6 +12,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.outlined.Edit
@@ -40,7 +44,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -57,6 +64,8 @@ fun DayPage(
     var dayWithExercisesAndSets =
         viewModel.dayWithExercisesAndSets.collectAsState(initial = emptyList())
     var chosenDay by remember { mutableIntStateOf(0) }
+    var exercisesWithSets = viewModel.exercisesWithSets.collectAsState(initial = emptyList())
+    var dayWithExercises = viewModel.dayWithExercises.collectAsState(initial = emptyList())
 
     Scaffold(topBar = {
         AppBar(
@@ -70,7 +79,7 @@ fun DayPage(
 //                        enabled = index != chosenDay,
                         onClick = {
                             chosenDay = index
-                            viewModel.getSets(day.dayId)
+                            viewModel.getDayWithExercisesAndSets(day.dayId)
                         }, label = {
                             Text(text = day.title)
                         }, alwaysShowLabel = true, icon = {
@@ -82,13 +91,13 @@ fun DayPage(
             }
         }
     }) { innerPadding ->
-        dayWithExercisesAndSets.value.map {
+        dayWithExercisesAndSets.value.map { day ->
             LazyColumn(
                 modifier = modifier
                     .padding(innerPadding)
                     .padding(16.dp),
             ) {
-                items(it.exercises) { exercise ->
+                items(day.exercises) { exercise ->
                     ElevatedCard(
                         elevation = CardDefaults.cardElevation(
                             defaultElevation = 6.dp,
@@ -97,18 +106,21 @@ fun DayPage(
                             .fillMaxSize()
                             .padding(8.dp),
                     ) {
-                        ListItem(headlineContent = {
-                            Text(
-                                exercise.exercise.title,
-                                textAlign = TextAlign.Center,
-                                fontWeight = FontWeight.SemiBold,
-                                modifier = Modifier.fillMaxWidth(),
-                            )
-                        })
+                        ListItem(
+                            headlineContent = {
+                                Text(
+                                    exercise.exercise.title,
+                                    textAlign = TextAlign.Center,
+                                    fontWeight = FontWeight.SemiBold,
+                                    modifier = Modifier.fillMaxWidth(),
+                                )
+                            },
+                        )
                         HorizontalDivider()
-                        exercise.sets.map { set ->
+
+                        exercise.sets.forEachIndexed { index, set ->
                             SetListItem(
-                                set = set, viewModel = viewModel
+                                set = set, viewModel = viewModel, index = index
                             )
                             HorizontalDivider()
                         }
@@ -119,13 +131,15 @@ fun DayPage(
     }
 }
 
+
 @Composable
-fun SetListItem(modifier: Modifier = Modifier, set: Set, viewModel: DayViewModel) {
+fun SetListItem(modifier: Modifier = Modifier, set: Set, viewModel: DayViewModel, index: Int) {
     var checked by remember { mutableStateOf(false) }
     var repState by remember { mutableStateOf("") }
     var weightState by remember { mutableStateOf("") }
     val coroutineScope = rememberCoroutineScope()
     var showDialog by remember { mutableStateOf(false) }
+    val context = LocalContext.current
     ListItem(headlineContent = {
         Row(
             modifier = Modifier
@@ -134,7 +148,7 @@ fun SetListItem(modifier: Modifier = Modifier, set: Set, viewModel: DayViewModel
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text("${set.setId}")
+            Text("${index + 1}")
             Text(
                 "${set.weight}kg"
             )
@@ -168,13 +182,20 @@ fun SetListItem(modifier: Modifier = Modifier, set: Set, viewModel: DayViewModel
                 repsValue = repState,
                 onRepsValueChange = { repState = it },
                 onConfirm = {
-                    coroutineScope.launch {
-                        viewModel.updateSet(
-                            set.copy(
-                                weight = weightState.toInt(),
-                                reps = repState.toInt()
+                    if (weightState.isNotBlank() && repState.isNotBlank()) {
+                        coroutineScope.launch {
+                            viewModel.updateSet(
+                                set.copy(
+                                    weight = weightState.toInt(), reps = repState.toInt()
+                                )
                             )
-                        )
+                        }
+                        showDialog = false
+                    } else {
+                        val toast =
+                            Toast.makeText(context, "Please enter a value", Toast.LENGTH_LONG)
+                        toast.setGravity(Gravity.CENTER, 0, 0)
+                        toast.show()
                     }
                 }
 
@@ -210,26 +231,25 @@ fun UpdateDialog(
                 .fillMaxWidth()
                 .padding(4.dp)
         ) {
-            OutlinedTextField(
-                value = weightValue,
-                onValueChange = {
-                    onWeightValueChange(it)
-                },
-                label = { Text("Weight") },
-                modifier = modifier.weight(1f)
+            OutlinedTextField(value = weightValue, onValueChange = {
+                onWeightValueChange(it)
+            }, label = { Text("Weight") }, keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Number, imeAction = ImeAction.Next
+            ), maxLines = 1, modifier = modifier.weight(1f)
             )
-            OutlinedTextField(
-                value = repsValue,
-                onValueChange = {
-                    onRepsValueChange(it)
-                },
-                label = { Text("Reps") },
-                modifier = modifier.weight(1f)
+            OutlinedTextField(value = repsValue, onValueChange = {
+                onRepsValueChange(it)
+            }, label = { Text("Reps") }, keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Number, imeAction = ImeAction.Done
+            ), keyboardActions = KeyboardActions(onDone = {
+                onConfirm()
+//                    onDismissRequest()
+            }), singleLine = true, maxLines = 1, modifier = modifier.weight(1f)
             )
             Button(
                 onClick = {
                     onConfirm()
-                    onDismissRequest()
+//                    onDismissRequest()
                 }, modifier = modifier
                     .weight(1f)
                     .height(54.dp)

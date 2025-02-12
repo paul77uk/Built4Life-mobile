@@ -29,4 +29,8 @@ interface DayDao {
     @Query("SELECT * FROM day WHERE program_id = :programId")
     fun getDaysWithExercisesAndSets(programId: Int): Flow<List<DayWithExercisesAndSets>>
 
+    @Transaction
+    @Query("SELECT * FROM day WHERE day_id = :dayId")
+    fun getDayWithExercisesAndSets(dayId: Int): Flow<List<DayWithExercisesAndSets>>
+
 }
