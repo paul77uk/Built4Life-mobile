@@ -10,6 +10,8 @@ interface ProgramRepository {
     fun getAllPrograms(): Flow<List<Program>>
     suspend fun insertProgram(program: Program)
     fun getProgramsWithDays(programId: Int): Flow<List<ProgramWithDays>>
+    suspend fun updateProgram(program: Program)
+    suspend fun deleteProgram(program: Program)
 }
 
 class ProgramRepositoryImpl @Inject constructor(private val programDao: ProgramDao) :
@@ -20,5 +22,10 @@ class ProgramRepositoryImpl @Inject constructor(private val programDao: ProgramD
 
     override fun getProgramsWithDays(programId: Int): Flow<List<ProgramWithDays>> =
         programDao.getProgramsWithDays(programId)
+
+    override suspend fun updateProgram(program: Program) = programDao.updateProgram(program)
+
+    override suspend fun deleteProgram(program: Program) = programDao.deleteProgram(program)
+
 
 }

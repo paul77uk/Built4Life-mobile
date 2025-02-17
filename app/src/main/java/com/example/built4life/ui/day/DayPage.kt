@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -16,9 +15,10 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material3.BasicAlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ElevatedCard
@@ -74,60 +74,66 @@ fun DayPage(
     }, bottomBar = {
         NavigationBar {
             programWithDays.value.map {
-                it.days.forEachIndexed { index, day ->
-                    NavigationBarItem(selected = index == chosenDay,
+                if (it.days.isNotEmpty())
+                    it.days.forEachIndexed { index, day ->
+                        NavigationBarItem(selected = index == chosenDay,
 //                        enabled = index != chosenDay,
-                        onClick = {
-                            chosenDay = index
-                            viewModel.getDayWithExercisesAndSets(day.dayId)
-                        }, label = {
-                            Text(text = day.title)
-                        }, alwaysShowLabel = true, icon = {
-                            Icon(
-                                Icons.Default.DateRange, contentDescription = "Day",
-                            )
-                        })
+                            onClick = {
+                                chosenDay = index
+                                viewModel.getDayWithExercisesAndSets(day.dayId)
+                            }, label = {
+                                Text(text = day.title)
+                            }, alwaysShowLabel = true, icon = {
+                                Icon(
+                                    Icons.Default.DateRange, contentDescription = "Day",
+                                )
+                            })
+                    } else {
+                    Text(text = "No days found")
                 }
             }
         }
     }) { innerPadding ->
-        dayWithExercisesAndSets.value.map { day ->
-            LazyColumn(
-                modifier = modifier
-                    .padding(innerPadding)
-                    .padding(16.dp),
-            ) {
-                items(day.exercises) { exercise ->
-                    ElevatedCard(
-                        elevation = CardDefaults.cardElevation(
-                            defaultElevation = 6.dp,
-                        ),
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(8.dp),
-                    ) {
-                        ListItem(
-                            headlineContent = {
-                                Text(
-                                    exercise.exercise.title,
-                                    textAlign = TextAlign.Center,
-                                    fontWeight = FontWeight.SemiBold,
-                                    modifier = Modifier.fillMaxWidth(),
-                                )
-                            },
-                        )
-                        HorizontalDivider()
-
-                        exercise.sets.forEachIndexed { index, set ->
-                            SetListItem(
-                                set = set, viewModel = viewModel, index = index
+        if (dayWithExercisesAndSets.value.isEmpty()) {
+            Text(text = "No exercises found")
+        } else
+            dayWithExercisesAndSets.value.map { day ->
+                LazyColumn(
+                    modifier = modifier
+                        .padding(innerPadding)
+                        .padding(16.dp),
+                ) {
+                    items(day.exercises) { exercise ->
+                        ElevatedCard(
+                            elevation = CardDefaults.cardElevation(
+                                defaultElevation = 6.dp,
+                            ),
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(8.dp),
+                        ) {
+                            ListItem(
+                                headlineContent = {
+                                    Text(
+                                        exercise.exercise.title,
+                                        textAlign = TextAlign.Center,
+                                        fontWeight = FontWeight.SemiBold,
+                                        modifier = Modifier.fillMaxWidth(),
+                                    )
+                                },
                             )
                             HorizontalDivider()
+
+                            exercise.sets.forEachIndexed { index, set ->
+                                SetListItem(
+                                    set = set, viewModel = viewModel, index = index
+                                )
+                                HorizontalDivider()
+                            }
                         }
                     }
                 }
             }
-        }
     }
 }
 
@@ -176,7 +182,8 @@ fun SetListItem(modifier: Modifier = Modifier, set: Set, viewModel: DayViewModel
 
         }
         if (showDialog) {
-            UpdateDialog(onDismissRequest = { showDialog = false },
+            UpdateDialog(
+                onDismissRequest = { showDialog = false },
                 weightValue = weightState,
                 onWeightValueChange = { weightState = it },
                 repsValue = repState,
@@ -197,8 +204,7 @@ fun SetListItem(modifier: Modifier = Modifier, set: Set, viewModel: DayViewModel
                         toast.setGravity(Gravity.CENTER, 0, 0)
                         toast.show()
                     }
-                }
-
+                },
             )
         }
     })
@@ -213,8 +219,9 @@ fun UpdateDialog(
     onWeightValueChange: (String) -> Unit,
     repsValue: String,
     onRepsValueChange: (String) -> Unit,
-    onConfirm: () -> Unit
+    onConfirm: () -> Unit,
 ) {
+
 
     BasicAlertDialog(
         onDismissRequest = onDismissRequest,
@@ -222,6 +229,7 @@ fun UpdateDialog(
             .clip(shape = RoundedCornerShape(5))
             .background(Color.White)
             .fillMaxWidth()
+            .padding(8.dp),
     ) {
 
         Row(
@@ -243,18 +251,35 @@ fun UpdateDialog(
                 keyboardType = KeyboardType.Number, imeAction = ImeAction.Done
             ), keyboardActions = KeyboardActions(onDone = {
                 onConfirm()
-//                    onDismissRequest()
+                //                    onDismissRequest()
             }), singleLine = true, maxLines = 1, modifier = modifier.weight(1f)
             )
-            Button(
+            IconButton(
+                onClick = {
+                    onDismissRequest()
+                },
+                modifier = modifier
+            ) {
+                Icon(
+                    Icons.Rounded.Close,
+                    contentDescription = "Exit",
+                    modifier = modifier
+                        .fillMaxSize(),
+                    tint = Color.Red
+                )
+            }
+            IconButton(
                 onClick = {
                     onConfirm()
-//                    onDismissRequest()
+                    //                    onDismissRequest()
                 }, modifier = modifier
-                    .weight(1f)
-                    .height(54.dp)
             ) {
-                Text("Update", textAlign = TextAlign.Center)
+                Icon(
+                    Icons.Outlined.CheckCircle,
+                    contentDescription = "Save",
+                    modifier = modifier.fillMaxSize(),
+                    tint = Color.Green
+                )
             }
         }
     }

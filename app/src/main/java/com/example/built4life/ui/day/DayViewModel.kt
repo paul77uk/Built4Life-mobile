@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
+import com.example.built4life.data.entities.Day
 import com.example.built4life.data.entities.Set
 import com.example.built4life.data.relations.DayWithExercises
 import com.example.built4life.data.relations.DayWithExercisesAndSets
@@ -27,6 +28,7 @@ class DayViewModel @Inject constructor(
     private val setRepository: SetRepository,
     private val exerciseRepository: ExerciseRepository
 ) : ViewModel() {
+    val days = MutableStateFlow<List<Day>>(emptyList())
     val dayRoute: DayRoute = savedStateHandle.toRoute<DayRoute>()
     val programWithDays = MutableStateFlow<List<ProgramWithDays>>(emptyList())
     var dayWithExercises = MutableStateFlow<List<DayWithExercises>>(emptyList())
@@ -38,11 +40,11 @@ class DayViewModel @Inject constructor(
         viewModelScope.launch {
             programRepository.getProgramsWithDays(dayRoute.programId).collect {
                 programWithDays.value = it
-                getDayWithExercisesAndSets(it[0].days[0].dayId)
+                if (programWithDays.value[0].days.isNotEmpty())
+                    getDayWithExercisesAndSets(it[0].days[0].dayId)
             }
 
         }
-
     }
 
     fun getExercises(dayId: Int) {
@@ -65,6 +67,14 @@ class DayViewModel @Inject constructor(
         viewModelScope.launch {
             dayRepository.getDayWithExercisesAndSets(dayId).collect {
                 dayWithExercisesAndSets.value = it
+            }
+        }
+    }
+
+    fun getAllDays() {
+        viewModelScope.launch {
+            dayRepository.getAllDays().collect {
+                days.value = it
             }
         }
     }
