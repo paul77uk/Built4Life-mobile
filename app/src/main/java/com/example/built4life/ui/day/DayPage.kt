@@ -2,9 +2,13 @@ package com.example.built4life.ui.day
 
 import android.view.Gravity
 import android.widget.Toast
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -15,17 +19,23 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material3.BasicAlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -52,6 +62,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.built4life.customcomposables.AppBar
+import com.example.built4life.customcomposables.DeleteDialog
+import com.example.built4life.data.entities.Day
 import com.example.built4life.data.entities.Set
 import kotlinx.coroutines.launch
 
@@ -59,6 +71,12 @@ import kotlinx.coroutines.launch
 fun DayPage(
     modifier: Modifier = Modifier, navigateUp: () -> Unit, viewModel: DayViewModel = hiltViewModel()
 ) {
+    var showDayDialog by remember { mutableStateOf(false) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
+    var editMode by remember { mutableStateOf(false) }
+    var dayValue by remember { mutableStateOf("") }
+    var coroutineScope = rememberCoroutineScope()
+    var expanded by remember { mutableStateOf(false) }
     val title = viewModel.dayRoute.title
     val programWithDays = viewModel.programWithDays.collectAsState(initial = emptyList())
     var dayWithExercisesAndSets =
@@ -73,9 +91,9 @@ fun DayPage(
         )
     }, bottomBar = {
         NavigationBar {
-            programWithDays.value.map {
-                if (it.days.isNotEmpty())
-                    it.days.forEachIndexed { index, day ->
+            programWithDays.value.map { program ->
+                if (program.days.isNotEmpty())
+                    program.days.forEachIndexed { index, day ->
                         NavigationBarItem(selected = index == chosenDay,
 //                        enabled = index != chosenDay,
                             onClick = {
@@ -88,9 +106,93 @@ fun DayPage(
                                     Icons.Default.DateRange, contentDescription = "Day",
                                 )
                             })
-                    } else {
-                    Text(text = "No days found")
-                }
+                    }
+            }
+            IconButton(onClick = {
+                expanded = !expanded
+            }) {
+                Icon(
+                    Icons.Default.MoreVert, contentDescription = "More options",
+                )
+            }
+            if (expanded) {
+                DropDown(expanded = expanded,
+                    onDismissRequest = {
+                        expanded = false
+                    },
+                    onCreate = {
+                        showDayDialog = true
+                        editMode = false
+                    },
+                    onEdit = {
+                        editMode = true
+                        dayValue = programWithDays.value[0].days[chosenDay].title
+                        showDayDialog = true
+                    },
+                    onDelete = {
+                        showDeleteDialog = true
+                        dayValue = programWithDays.value[0].days[chosenDay].title
+                    }
+                )
+            }
+            if (showDeleteDialog) {
+                DeleteDialog(
+                    onDismissRequest = {
+                        showDeleteDialog = false
+                    },
+                    onDelete = {
+                        coroutineScope.launch {
+                            viewModel.deleteDay(
+                                Day(
+                                    dayId = programWithDays.value[0].days[chosenDay].dayId,
+                                    title = dayValue,
+                                    programId = viewModel.dayRoute.programId
+                                )
+                            )
+                            chosenDay = 0
+
+                        }
+                    }
+                )
+            }
+            if (showDayDialog) {
+                CreateEditDayDialog(
+                    dayDialogTitle = if (editMode) "Edit Day" else "Create Day",
+                    dayValue = dayValue,
+                    onDayValueChange = { dayValue = it },
+                    onDismissRequest = {
+                        showDayDialog = false
+                        dayValue = ""
+                    },
+                    onDaySave = {
+                        if (editMode) {
+                            coroutineScope.launch {
+                                viewModel.updateDay(
+                                    Day(
+                                        dayId = programWithDays.value[0].days[chosenDay].dayId,
+                                        title = dayValue,
+                                        programId = viewModel.dayRoute.programId
+                                    )
+                                )
+                                dayValue = ""
+                            }
+                            showDayDialog = false
+
+                        } else {
+                            coroutineScope.launch {
+                                viewModel.insertDay(
+                                    Day(
+                                        title = dayValue,
+                                        programId = viewModel.dayRoute.programId
+                                    )
+                                )
+                                dayValue = ""
+                            }
+                            showDayDialog = false
+
+                        }
+                    }
+                )
             }
         }
     }) { innerPadding ->
@@ -258,28 +360,130 @@ fun UpdateDialog(
                 onClick = {
                     onDismissRequest()
                 },
-                modifier = modifier
+                modifier = modifier,
+                colors = IconButtonDefaults.iconButtonColors(
+                    containerColor = Color.Gray
+                )
             ) {
                 Icon(
                     Icons.Rounded.Close,
                     contentDescription = "Exit",
-                    modifier = modifier
-                        .fillMaxSize(),
-                    tint = Color.Red
+                    modifier = modifier,
+                    tint = Color.White,
                 )
             }
             IconButton(
                 onClick = {
                     onConfirm()
                     //                    onDismissRequest()
-                }, modifier = modifier
+                }, modifier = modifier,
+                colors = IconButtonDefaults.iconButtonColors(
+                    containerColor = Color(0xFFFE9900)
+                )
             ) {
                 Icon(
-                    Icons.Outlined.CheckCircle,
+                    Icons.Outlined.Check,
                     contentDescription = "Save",
-                    modifier = modifier.fillMaxSize(),
-                    tint = Color.Green
+                    modifier = modifier,
+                    tint = Color.White
                 )
+            }
+        }
+    }
+}
+
+@Composable
+fun DropDown(
+    expanded: Boolean,
+    onDismissRequest: () -> Unit,
+    modifier: Modifier = Modifier,
+    onCreate: () -> Unit,
+    onEdit: () -> Unit,
+    onDelete: () -> Unit
+) {
+    Box(modifier = modifier.padding(end = 8.dp)) {
+        DropdownMenu(
+            border = BorderStroke(1.dp, Color.LightGray),
+            expanded = expanded,
+            onDismissRequest = onDismissRequest,
+            modifier = modifier.background(Color.White)
+        ) {
+            DropdownMenuItem(text = { Text("Create") }, onClick = {
+                onCreate()
+                onDismissRequest()
+            })
+            HorizontalDivider()
+            DropdownMenuItem(text = { Text("Edit") }, onClick = {
+                onEdit()
+                onDismissRequest()
+            })
+            HorizontalDivider()
+            DropdownMenuItem(text = { Text("Delete") }, onClick = {
+                onDelete()
+                onDismissRequest()
+            })
+        }
+    }
+
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CreateEditDayDialog(
+    modifier: Modifier = Modifier,
+    dayDialogTitle: String,
+    dayValue: String,
+    onDayValueChange: (String) -> Unit,
+    onDismissRequest: () -> Unit,
+    onDaySave: () -> Unit,
+) {
+    BasicAlertDialog(
+        onDismissRequest = onDismissRequest,
+        modifier = modifier
+            .clip(shape = RoundedCornerShape(5))
+            .background(Color.White)
+            .padding(16.dp),
+    ) {
+        Column {
+            Text(
+                text = dayDialogTitle,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.padding(vertical = 12.dp)
+            )
+            OutlinedTextField(
+                value = dayValue,
+                onValueChange = { onDayValueChange(it) },
+                label = { Text("Day title") },
+                modifier = Modifier.fillMaxWidth()
+            )
+            Row(
+                horizontalArrangement = Arrangement.End,
+                modifier = modifier
+                    .fillMaxWidth()
+                    .padding(top = 16.dp)
+            ) {
+                Button(
+                    onClick = {
+                        onDismissRequest()
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color.Gray,
+                    ),
+                    shape = RoundedCornerShape(15),
+                ) {
+                    Text("Cancel")
+                }
+                Spacer(modifier = Modifier.padding(4.dp))
+                Button(
+                    onClick = onDaySave,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFFFE9900),
+                    ),
+                    shape = RoundedCornerShape(15),
+                    enabled = dayValue.isNotBlank()
+                ) {
+                    Text("Save")
+                }
             }
         }
     }

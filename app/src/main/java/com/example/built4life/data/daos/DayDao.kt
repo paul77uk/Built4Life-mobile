@@ -1,9 +1,11 @@
 package com.example.built4life.data.daos
 
 import androidx.room.Dao
+import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Transaction
+import androidx.room.Update
 import com.example.built4life.data.entities.Day
 import com.example.built4life.data.entities.DayExerciseCrossRef
 import com.example.built4life.data.relations.DayWithExercises
@@ -17,6 +19,12 @@ interface DayDao {
 
     @Insert
     suspend fun insertDay(day: Day)
+
+    @Update
+    suspend fun updateDay(day: Day)
+
+    @Delete
+    suspend fun deleteDay(day: Day)
 
     @Transaction
     @Query("SELECT * FROM day WHERE day_id = :dayId")

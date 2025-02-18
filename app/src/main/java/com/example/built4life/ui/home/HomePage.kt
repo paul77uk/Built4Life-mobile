@@ -49,7 +49,9 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.built4life.R
 import com.example.built4life.customcomposables.AppBar
+import com.example.built4life.customcomposables.DeleteDialog
 import com.example.built4life.data.entities.Program
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
@@ -122,7 +124,9 @@ fun HomePage(
 
     }
     if (showDeleteDialog) {
-        DeleteDialog(onDismissRequest = { showDeleteDialog = false }, onDelete = {
+        DeleteDialog(onDismissRequest = {
+            showDeleteDialog = false
+        }, onDelete = {
             coroutineScope.launch {
                 viewModel.deleteProgram(
                     program = Program(
@@ -141,6 +145,10 @@ fun HomePage(
             onDismissRequest = { showDialog = false },
             onDeleteProgram = {
                 showDeleteDialog = true
+                coroutineScope.launch {
+                    delay(1000)
+                    showDialog = false
+                }
             },
             onInsertProgram = {
                 coroutineScope.launch {
@@ -293,6 +301,7 @@ fun CreateProgramDialog(
                             containerColor = Color(0xFFFE9900),
                         ),
                         shape = RoundedCornerShape(15),
+                        enabled = programName.isNotBlank()
                     ) {
                         Text("Save")
                     }
@@ -302,51 +311,3 @@ fun CreateProgramDialog(
 }
 
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun DeleteDialog(
-    onDismissRequest: () -> Unit, modifier: Modifier = Modifier, onDelete: () -> Unit
-) {
-    BasicAlertDialog(
-        onDismissRequest = onDismissRequest,
-        modifier = modifier
-            .clip(shape = RoundedCornerShape(5))
-            .background(Color.White)
-            .padding(16.dp),
-    ) {
-        Column {
-            Text("Are you sure you want to delete this program?")
-            Row(
-                horizontalArrangement = Arrangement.End,
-                modifier = modifier
-                    .fillMaxWidth()
-                    .padding(top = 16.dp)
-            ) {
-                Button(
-                    onClick = {
-                        onDismissRequest()
-                    },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.Gray,
-                    ),
-                    shape = RoundedCornerShape(15),
-                ) {
-                    Text("Cancel")
-                }
-                Spacer(modifier = Modifier.padding(4.dp))
-                Button(
-                    onClick = {
-                        onDismissRequest()
-                        onDelete()
-                    },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFFFE9900),
-                    ),
-                    shape = RoundedCornerShape(15),
-                ) {
-                    Text("Delete")
-                }
-            }
-        }
-    }
-}

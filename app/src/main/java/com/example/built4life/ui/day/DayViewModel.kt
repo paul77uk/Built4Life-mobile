@@ -81,6 +81,12 @@ class DayViewModel @Inject constructor(
 
     suspend fun updateSet(set: Set) = setRepository.updateSet(set)
 
+    suspend fun insertDay(day: Day) = dayRepository.insertDay(day)
+
+    suspend fun updateDay(day: Day) = dayRepository.updateDay(day)
+
+    suspend fun deleteDay(day: Day) = dayRepository.deleteDay(day)
+
 
 //    private val _dayUiState = MutableStateFlow(DayUiState())
 //    val dayUiState = _dayUiState.asStateFlow()

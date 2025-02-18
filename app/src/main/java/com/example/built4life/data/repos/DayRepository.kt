@@ -14,6 +14,10 @@ interface DayRepository {
 
     suspend fun insertDay(day: Day)
 
+    suspend fun updateDay(day: Day)
+
+    suspend fun deleteDay(day: Day)
+
     fun getDaysWithExercises(dayId: Int): Flow<List<DayWithExercises>>
 
     suspend fun insertDayExerciseCrossRef(dayExerciseCrossRef: DayExerciseCrossRef)
@@ -29,6 +33,10 @@ class DayRepositoryImpl @Inject constructor(private val dayDao: DayDao) :
     override fun getAllDays(): Flow<List<Day>> = dayDao.getAllDays()
 
     override suspend fun insertDay(day: Day) = dayDao.insertDay(day)
+
+    override suspend fun updateDay(day: Day) = dayDao.updateDay(day)
+
+    override suspend fun deleteDay(day: Day) = dayDao.deleteDay(day)
 
     override fun getDaysWithExercises(dayId: Int): Flow<List<DayWithExercises>> =
         dayDao.getDaysWithExercises(dayId)
